@@ -9,13 +9,13 @@
 @AGENTS.md
 
 ## Goal
-Build a beautiful, working SaaS demo: one clear user, one painful problem, one core feature done really well. Polish matters more than the number of features.
+MVP ONLY: the smallest version that works and demos well. Build a beautiful, working SaaS demo: one clear user, one painful problem, one core feature done really well. Polish matters more than the number of features.
 
 ## Tech stack
 - Next.js + Tailwind CSS + shadcn/ui (front end, must look like a polished startup)
 - Supabase (login + database, no custom backend)
 - Stripe in TEST MODE (Free vs Pro plans, "Upgrade to Pro" checkout)
-- Vercel (live link, deployed from GitHub)
+- Vercel (live link, deployed from GitHub): https://saas-hackathon.vercel.app (repo: github.com/Med-Ga/saas-hackathon)
 - Claude API only if the core feature needs AI
 - API keys go in .env, which must be in .gitignore. Never commit secrets.
 
@@ -39,6 +39,16 @@ Build a beautiful, working SaaS demo: one clear user, one painful problem, one c
 - For design: use the frontend-design plugin and Playwright to screenshot pages on desktop and mobile and fix what looks off.
 - Never add features that aren't in the spec.
 - Before the pitch, explain how the app works in simple words.
+- After every finished feature, update PITCH.md (demo steps, what to say, who says it). Keep it short. By the end, the pitch must be ready.
+- Save tokens: short answers, no long explanations unless asked, read only the files needed, no screenshots unless checking design.
+
+## REMINDER: rename everything once the app name is chosen
+When the team picks the app name, remind me and rename everything visible in the demo/pitch:
+- App: page titles (browser tab "Create Next App"), logo/text, favicon, README
+- Vercel domain (saas-hackathon.vercel.app -> <name>.vercel.app)
+- Supabase: organization ("Peugeot 106"), project ("Saas_Hackathon"), login email sender name
+- Stripe: business/product names on the checkout page (e.g. "<Name> Pro")
+- GitHub repo name (optional)
 
 ## Hackathon rules note
 Some hackathons require code to be written during the event. Until the hackathon starts, everything here is PRACTICE ONLY.
