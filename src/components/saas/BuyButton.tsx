@@ -6,11 +6,13 @@ export function BuyButton({
   label,
   signedIn,
   className,
+  returnTo = "/pricing",
 }: {
   packageId: string;
   label: string;
   signedIn: boolean;
   className?: string;
+  returnTo?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,7 @@ export function BuyButton({
 
   async function buy() {
     if (!signedIn) {
-      window.location.href = `/login?next=${encodeURIComponent("/pricing")}`;
+      window.location.href = `/login?next=${encodeURIComponent(returnTo)}`;
       return;
     }
     setBusy(true);

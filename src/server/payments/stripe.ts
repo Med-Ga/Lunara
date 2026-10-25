@@ -33,7 +33,12 @@ export async function createCheckout(
         line_items: [{ price: purchase.expected_price_id, quantity: 1 }],
         client_reference_id: purchase.id,
         customer_email: actor.email ?? undefined,
-        metadata: { purchase_id: purchase.id, user_id: actor.id, package_id: purchase.package_id },
+        metadata: {
+          purchase_id: purchase.id,
+          user_id: actor.id,
+          package_id: purchase.package_id,
+          destination_id: purchase.destination_id,
+        },
         payment_intent_data: { metadata: { purchase_id: purchase.id } },
         success_url: `${origin}/purchase-status?purchase=${purchase.id}`,
         cancel_url: `${origin}/purchase-status?purchase=${purchase.id}&canceled=1`,

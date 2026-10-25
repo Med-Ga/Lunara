@@ -1,13 +1,17 @@
 "use client";
 // The ONLY client session adapter. It never decides how much time exists: it shows
-// a countdown derived from server snapshots, renews the lease, and fails closed.
+// a countdown derived from server snapshots, renews the lease (carrying idempotent
+// telemetry checkpoints), persists scans, and fails closed.
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AccountSnapshot, SessionPolicy } from "@/shared/contracts";
+import type { AccountSnapshot, SessionPolicy, TelemetryInput } from "@/shared/contracts";
+import type { DestinationId } from "@/config/destinations";
+import type { PoseStore } from "@/components/exploration/pose";
 
 export type ExplorationState =
   | "LOADING_ACCOUNT"
-  | "IDLE" // no active session; may Start if balance > 0
-  | "RECOVERABLE" // an active session exists (refresh / other tab); explicit Resume needed
+  | "IDLE" // no active session; may Start if this destination has time
+  | "RECOVERABLE" // an active session for THIS destination exists (refresh / other tab)
+  | "OTHER_ACTIVE" // an active session exists for ANOTHER destination
   | "STARTING"
   | "ACTIVE"
   | "CONNECTION_LOST"
@@ -23,9 +27,16 @@ interface Controller {
 }
 
 interface Anchor {
-  perf: number; // performance.now() when the snapshot was received (minus half RTT)
-  balanceMs: number; // settled balance at that instant
-  authMs: number; // ms of authorization remaining at that instant
+  perf: number;
+  balanceMs: number;
+  authMs: number;
+}
+
+interface Segment {
+  id: string;
+  baseDist: number;
+  baseMs: number;
+  ackedDist: number;
 }
 
 const STORE_KEY = "lunara.controller";
@@ -37,6 +48,8 @@ function randomToken(): string {
   return Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
 }
 
+type ApiErr = Error & { code?: string; status?: number };
+
 async function api<T>(path: string, body?: unknown, keepalive = false): Promise<T> {
   const res = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
@@ -47,7 +60,7 @@ async function api<T>(path: string, body?: unknown, keepalive = false): Promise<
   });
   const json = await res.json().catch(() => null);
   if (!res.ok) {
-    const err = new Error(json?.error?.message ?? `HTTP ${res.status}`) as Error & { code?: string; status?: number };
+    const err = new Error(json?.error?.message ?? `HTTP ${res.status}`) as ApiErr;
     err.code = json?.error?.code;
     err.status = res.status;
     throw err;
@@ -55,17 +68,21 @@ async function api<T>(path: string, body?: unknown, keepalive = false): Promise<
   return json as T;
 }
 
-export function useExplorationSession() {
+export function useExplorationSession(destination: DestinationId, pose: PoseStore) {
   const [state, setState] = useState<ExplorationState>("LOADING_ACCOUNT");
   const [snapshot, setSnapshot] = useState<AccountSnapshot | null>(null);
   const [policy, setPolicy] = useState<SessionPolicy>({ heartbeatMs: 5000, leaseMs: 15000 });
   const [message, setMessage] = useState<string | null>(null);
   const [remainingMs, setRemainingMs] = useState(0);
   const [lowTimeWarned, setLowTimeWarned] = useState(false);
+  const [savedSites, setSavedSites] = useState<ReadonlySet<string>>(new Set());
+  const [lastSessionId, setLastSessionId] = useState<string | null>(null);
 
   const stateRef = useRef<ExplorationState>("LOADING_ACCOUNT");
   const controller = useRef<Controller | null>(null);
   const anchor = useRef<Anchor | null>(null);
+  const segment = useRef<Segment | null>(null);
+  const serverDistance = useRef(0);
   const seq = useRef(0);
   const inFlight = useRef(false);
 
@@ -74,15 +91,34 @@ export function useExplorationSession() {
     setState(s);
   }, []);
 
-  /** Apply a server snapshot received after a request that started at t0. */
+  const newSegment = useCallback(() => {
+    segment.current = { id: crypto.randomUUID(), baseDist: pose.distance, baseMs: pose.activeMs, ackedDist: 0 };
+  }, [pose]);
+
+  const telemetry = useCallback((): TelemetryInput | undefined => {
+    const seg = segment.current;
+    if (!seg || !pose.ready) return undefined;
+    return {
+      segment: seg.id,
+      dist: Math.max(0, pose.distance - seg.baseDist),
+      ms: Math.max(0, Math.round(pose.activeMs - seg.baseMs)),
+      x: pose.x,
+      z: pose.z,
+      heading: pose.yaw,
+    };
+  }, [pose]);
+
   const applySnapshot = useCallback(
     (snap: AccountSnapshot, t0: number) => {
       const t1 = performance.now();
       setSnapshot(snap);
       const s = snap.session;
+      if (s && s.destinationId === destination) {
+        serverDistance.current = s.distanceMu;
+        setSavedSites((prev) => (s.scannedSites.every((x) => prev.has(x)) ? prev : new Set([...prev, ...s.scannedSites])));
+      }
       const ctl = controller.current;
       if (ctl && s && s.id === ctl.sessionId && s.controllerGeneration !== ctl.generation) {
-        // Someone took over in another tab.
         controller.current = null;
         anchor.current = null;
         go("RECOVERABLE");
@@ -90,7 +126,6 @@ export function useExplorationSession() {
         return;
       }
       if (s && s.status === "ACTIVE" && ctl && s.id === ctl.sessionId && s.authorizedUntil != null) {
-        // Conservative: count the whole round trip against the user's display.
         anchor.current = {
           perf: t1,
           balanceMs: snap.balanceMs - (t1 - t0),
@@ -100,19 +135,25 @@ export function useExplorationSession() {
         return;
       }
       anchor.current = null;
-      setRemainingMs(snap.balanceMs);
+      setRemainingMs(snap.balances[destination] ?? 0);
       if (s && s.status === "ACTIVE" && !ctl) {
-        go("RECOVERABLE");
+        go(s.destinationId === destination ? "RECOVERABLE" : "OTHER_ACTIVE");
       } else if (s && ctl && s.id === ctl.sessionId && s.status !== "ACTIVE") {
         controller.current = null;
         sessionStorage.removeItem(STORE_KEY);
+        setLastSessionId(s.id);
         go(s.status === "EXPIRED" ? "EXPIRED" : s.status === "ENDED" ? "ENDED" : "CONNECTION_LOST");
-        if (s.status === "INTERRUPTED") setMessage("The connection lease ran out, so the session was closed. Your remaining time is saved.");
-      } else if (stateRef.current === "LOADING_ACCOUNT" || stateRef.current === "RECONNECTING" as ExplorationState) {
+        if (s.status === "INTERRUPTED")
+          setMessage("The connection lease ran out, so the session was closed. Your remaining time is saved.");
+      } else if (
+        stateRef.current === "LOADING_ACCOUNT" ||
+        stateRef.current === ("RECONNECTING" as ExplorationState) ||
+        stateRef.current === "OTHER_ACTIVE"
+      ) {
         go("IDLE");
       }
     },
-    [go],
+    [go, destination],
   );
 
   const refresh = useCallback(async () => {
@@ -134,25 +175,40 @@ export function useExplorationSession() {
     return () => window.clearTimeout(t);
   }, [refresh]);
 
+  const becomeController = useCallback(
+    (snap: AccountSnapshot, token: string, t0: number) => {
+      const s = snap.session!;
+      controller.current = { sessionId: s.id, token, generation: s.controllerGeneration };
+      sessionStorage.setItem(STORE_KEY, JSON.stringify(controller.current));
+      seq.current = 0;
+      newSegment(); // fresh sampling anchor: recovery/spawn never counts as distance
+      setLastSessionId(s.id);
+      applySnapshot(snap, t0);
+      go("ACTIVE");
+    },
+    [applySnapshot, go, newSegment],
+  );
+
   /** Explicit, billable Start. Only call after the scene is ready. */
   const start = useCallback(async () => {
     if (stateRef.current !== "IDLE" && stateRef.current !== "ENDED" && stateRef.current !== "CONNECTION_LOST") return;
     go("STARTING");
     setMessage(null);
     setLowTimeWarned(false);
-    // Reuse a pending start identity if a previous response was lost.
+    setSavedSites(new Set());
+    serverDistance.current = 0;
     let pending = JSON.parse(sessionStorage.getItem(PENDING_START_KEY) ?? "null") as
-      | { requestKey: string; token: string }
+      | { requestKey: string; token: string; destination: DestinationId }
       | null;
-    if (!pending) {
-      pending = { requestKey: crypto.randomUUID(), token: randomToken() };
+    if (!pending || pending.destination !== destination) {
+      pending = { requestKey: crypto.randomUUID(), token: randomToken(), destination };
       sessionStorage.setItem(PENDING_START_KEY, JSON.stringify(pending));
     }
     for (let attempt = 0; attempt < 3; attempt++) {
       const t0 = performance.now();
       try {
         const snap = await api<AccountSnapshot & { policy: SessionPolicy }>("/api/sessions", {
-          destinationId: "mars",
+          destinationId: destination,
           requestKey: pending.requestKey,
           controllerToken: pending.token,
         });
@@ -164,33 +220,29 @@ export function useExplorationSession() {
           go(s.status === "EXPIRED" ? "EXPIRED" : "ENDED");
           return;
         }
-        controller.current = { sessionId: s.id, token: pending.token, generation: s.controllerGeneration };
-        sessionStorage.setItem(STORE_KEY, JSON.stringify(controller.current));
-        seq.current = 0;
-        applySnapshot(snap, t0);
-        go("ACTIVE");
+        becomeController(snap, pending.token, t0);
         return;
       } catch (e) {
-        const err = e as Error & { code?: string; status?: number };
+        const err = e as ApiErr;
         if (err.status && err.status < 500) {
           sessionStorage.removeItem(PENDING_START_KEY);
           setMessage(err.message);
           await refresh();
-          go(err.code === "SESSION_ALREADY_ACTIVE" ? "RECOVERABLE" : "IDLE");
+          if ((stateRef.current as ExplorationState) === "STARTING")
+            go(err.code === "SESSION_ALREADY_ACTIVE" ? "RECOVERABLE" : "IDLE");
           return;
         }
-        // Network/5xx: retry the SAME request key (never a second session).
       }
     }
     setMessage("Start could not be confirmed. If it started, use Resume to recover it.");
     await refresh();
     if ((stateRef.current as ExplorationState) === "STARTING") go("IDLE");
-  }, [applySnapshot, go, refresh]);
+  }, [applySnapshot, becomeController, destination, go, refresh]);
 
-  /** Explicit recovery of an active session (refresh or other tab). */
+  /** Explicit recovery of an active session for this destination (refresh or other tab). */
   const resume = useCallback(async () => {
     const s = snapshot?.session;
-    if (!s || s.status !== "ACTIVE") return;
+    if (!s || s.status !== "ACTIVE" || s.destinationId !== destination) return;
     go("STARTING");
     const token = randomToken();
     const t0 = performance.now();
@@ -206,20 +258,29 @@ export function useExplorationSession() {
         go(ns.status === "EXPIRED" ? "EXPIRED" : "ENDED");
         return;
       }
-      controller.current = { sessionId: ns.id, token, generation: ns.controllerGeneration };
-      sessionStorage.setItem(STORE_KEY, JSON.stringify(controller.current));
-      seq.current = 0;
-      applySnapshot(snap, t0);
       setMessage(null);
-      go("ACTIVE");
+      becomeController(snap, token, t0);
     } catch (e) {
       setMessage((e as Error).message);
       await refresh();
       if ((stateRef.current as ExplorationState) === "STARTING") go("IDLE");
     }
-  }, [applySnapshot, go, refresh, snapshot]);
+  }, [applySnapshot, becomeController, destination, go, refresh, snapshot]);
 
-  /** Exit: freeze immediately, then ask the server to settle and close. */
+  /** End an active session that belongs to another destination (to switch destinations). */
+  const endOther = useCallback(async () => {
+    const s = snapshot?.session;
+    if (!s || s.status !== "ACTIVE") return;
+    try {
+      await api(`/api/sessions/${s.id}/end`, {});
+    } catch (e) {
+      setMessage((e as Error).message);
+    }
+    stateRef.current = "RECONNECTING" as ExplorationState;
+    await refresh();
+  }, [refresh, snapshot]);
+
+  /** Exit: freeze immediately, then ask the server to settle and close (with a final checkpoint). */
   const exit = useCallback(
     async (keepalive = false) => {
       const ctl = controller.current;
@@ -229,24 +290,39 @@ export function useExplorationSession() {
       try {
         const snap = await api<AccountSnapshot>(
           `/api/sessions/${ctl.sessionId}/stop`,
-          { controllerToken: ctl.token, generation: ctl.generation },
+          { controllerToken: ctl.token, generation: ctl.generation, telemetry: telemetry() },
           keepalive,
         );
         controller.current = null;
         sessionStorage.removeItem(STORE_KEY);
         anchor.current = null;
+        setLastSessionId(ctl.sessionId);
         applySnapshot(snap, t0);
-        const st = snap.session?.status;
-        go(st === "EXPIRED" ? "EXPIRED" : "ENDED");
+        go(snap.session?.status === "EXPIRED" ? "EXPIRED" : "ENDED");
       } catch {
         setMessage("Exit not confirmed; billing stops by the displayed connection cutoff (at most 15 seconds).");
         go("CONNECTION_LOST");
       }
     },
-    [applySnapshot, go],
+    [applySnapshot, go, telemetry],
   );
 
-  // Heartbeat loop: one request in flight, monotonic sequence.
+  /** Persist a scan for the current session. Resolves only after the server stored it. */
+  const scan = useCallback(async (siteId: string, x: number, z: number) => {
+    const ctl = controller.current;
+    if (!ctl || stateRef.current !== "ACTIVE") throw new Error("The session is not active.");
+    const res = await api<{ outcome: string; siteId: string }>(`/api/sessions/${ctl.sessionId}/observations`, {
+      controllerToken: ctl.token,
+      generation: ctl.generation,
+      siteId,
+      x,
+      z,
+    });
+    setSavedSites((prev) => new Set([...prev, res.siteId]));
+    return res;
+  }, []);
+
+  // Heartbeat loop: one request in flight, monotonic sequence, cumulative telemetry checkpoint.
   useEffect(() => {
     if (state !== "ACTIVE") return;
     const id = window.setInterval(async () => {
@@ -254,16 +330,19 @@ export function useExplorationSession() {
       if (!ctl || inFlight.current || stateRef.current !== "ACTIVE") return;
       inFlight.current = true;
       const mySeq = ++seq.current;
+      const tel = telemetry();
       const t0 = performance.now();
       try {
         const snap = await api<AccountSnapshot & { seq: number }>(`/api/sessions/${ctl.sessionId}/heartbeat`, {
           controllerToken: ctl.token,
           generation: ctl.generation,
           seq: mySeq,
+          telemetry: tel,
         });
+        if (tel && segment.current?.id === tel.segment) segment.current.ackedDist = tel.dist;
         if (stateRef.current === "ACTIVE" && snap.seq === seq.current) applySnapshot(snap, t0);
       } catch (e) {
-        const err = e as Error & { code?: string };
+        const err = e as ApiErr;
         if (err.code === "STALE_CONTROLLER") {
           controller.current = null;
           setMessage("Another tab took control of this session.");
@@ -277,7 +356,7 @@ export function useExplorationSession() {
       }
     }, policy.heartbeatMs);
     return () => window.clearInterval(id);
-  }, [state, policy.heartbeatMs, applySnapshot, go, refresh]);
+  }, [state, policy.heartbeatMs, applySnapshot, go, refresh, telemetry]);
 
   // Local cutoff guard + countdown display (performance.now, not wall clock).
   useEffect(() => {
@@ -293,7 +372,7 @@ export function useExplorationSession() {
         go("EXPIRED");
         controller.current = null;
         sessionStorage.removeItem(STORE_KEY);
-        window.setTimeout(() => void refresh(), 600); // confirm with the server
+        window.setTimeout(() => void refresh(), 600);
       } else if (a.authMs - elapsed <= 0) {
         setMessage("Connection could not be confirmed in time. Controls are frozen.");
         go("CONNECTION_LOST");
@@ -318,7 +397,6 @@ export function useExplorationSession() {
     };
   }, [exit]);
 
-  /** After a lost connection: drop the local controller and re-read server truth. */
   const reconnect = useCallback(async () => {
     controller.current = null;
     anchor.current = null;
@@ -329,7 +407,23 @@ export function useExplorationSession() {
     if (!snap) go("CONNECTION_LOST");
   }, [go, refresh]);
 
-  const inputEnabled = state === "ACTIVE";
+  /** Server-accepted distance plus the not-yet-acknowledged local part of this segment. */
+  const displayDistance = useCallback(() => {
+    const seg = segment.current;
+    const local = seg ? Math.max(0, pose.distance - seg.baseDist - seg.ackedDist) : 0;
+    return serverDistance.current + local;
+  }, [pose]);
+
+  const freeze = useCallback(
+    (reason: string) => {
+      if (stateRef.current === "ACTIVE") {
+        setMessage(reason);
+        void exit();
+      }
+    },
+    [exit],
+  );
+
   return {
     state,
     snapshot,
@@ -337,17 +431,18 @@ export function useExplorationSession() {
     message,
     remainingMs,
     lowTimeWarned,
-    inputEnabled,
+    savedSites,
+    lastSessionId,
+    destinationBalance: snapshot?.balances[destination] ?? 0,
+    inputEnabled: state === "ACTIVE",
     start,
     resume,
     exit,
+    endOther,
+    scan,
     refresh,
     reconnect,
-    freeze: (reason: string) => {
-      if (stateRef.current === "ACTIVE") {
-        setMessage(reason);
-        void exit();
-      }
-    },
+    displayDistance,
+    freeze,
   };
 }

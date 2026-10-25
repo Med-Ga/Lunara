@@ -17,13 +17,14 @@ export async function rpc<T>(fn: string, args: Record<string, unknown>): Promise
 export async function listPackages() {
   const { data, error } = await createAdminClient()
     .from("packages")
-    .select("id,label,duration_ms,amount_minor,currency")
+    .select("id,destination_id,label,duration_ms,amount_minor,currency")
     .eq("active", true)
     .not("stripe_price_id", "is", null)
     .order("sort_order");
   if (error) throw new Error(`packages: ${error.message}`);
   return (data ?? []).map((p) => ({
     id: p.id as string,
+    destinationId: p.destination_id as "mars" | "moon",
     label: p.label as string,
     durationMs: Number(p.duration_ms),
     amountMinor: Number(p.amount_minor),
@@ -35,6 +36,7 @@ interface PurchaseRow {
   id: string;
   user_id: string;
   package_id: string;
+  destination_id: "mars" | "moon";
   status: string;
   stripe_checkout_id: string | null;
   checkout_url: string | null;
@@ -72,6 +74,7 @@ export function toPurchaseDTO(p: PurchaseRow) {
   return {
     id: p.id,
     packageId: p.package_id,
+    destinationId: p.destination_id,
     status: p.status,
     durationMs: Number(p.expected_duration_ms),
     amountMinor: Number(p.expected_amount_minor),

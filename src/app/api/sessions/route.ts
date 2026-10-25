@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     assertSameOrigin(req);
     const actor = await requireActor();
     const input = await parseBody(req, startSessionInput);
-    const snap = await sessions.start(actor.id, input.requestKey, input.controllerToken);
+    const snap = await sessions.start(actor.id, input.destinationId, input.requestKey, input.controllerToken);
     return ok({ ...snap, policy: policy() }, 201);
   });
 }

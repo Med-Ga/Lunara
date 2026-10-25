@@ -6,6 +6,7 @@ export type PurchaseStatus = "PENDING" | "CREDITED" | "UNPAID" | "CHECKOUT_EXPIR
 
 export interface SessionSnapshot {
   id: string;
+  destinationId: "mars" | "moon";
   status: SessionStatus;
   startedAt: number;
   accountedThrough: number;
@@ -16,11 +17,16 @@ export interface SessionSnapshot {
   consumedMs: number;
   controllerGeneration: number;
   heartbeatSeq: number;
+  distanceMu: number;
+  sampledMs: number;
+  scannedSites: string[];
 }
 
 export interface AccountSnapshot {
   serverNow: number;
+  /** Legacy: balance of the session destination (Mars when no session). Prefer balances. */
   balanceMs: number;
+  balances: Partial<Record<"mars" | "moon", number>>;
   accountRevision: number;
   session: SessionSnapshot | null;
   replayed?: boolean;
@@ -28,6 +34,7 @@ export interface AccountSnapshot {
 
 export interface PackageDTO {
   id: string;
+  destinationId: "mars" | "moon";
   label: string;
   durationMs: number;
   amountMinor: number;
@@ -36,6 +43,7 @@ export interface PackageDTO {
 
 export interface PurchaseDTO {
   id: string;
+  destinationId: "mars" | "moon";
   packageId: string;
   status: PurchaseStatus;
   durationMs: number;
@@ -67,6 +75,12 @@ export const ERROR_CODES = [
   "CHECKOUT_MISMATCH",
   "PAYMENT_PROVIDER_UNAVAILABLE",
   "SERVICE_UNAVAILABLE",
+  "SESSION_NOT_ACTIVE",
+  "SESSION_NOT_CLOSED",
+  "WRONG_DESTINATION",
+  "OUT_OF_RANGE",
+  "IMPLAUSIBLE_POSITION",
+  "UNKNOWN_SITE",
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -77,8 +91,21 @@ export interface ApiError {
 const uuid = z.string().uuid();
 const token = z.string().regex(/^[0-9a-f]{64}$/, "controller token must be 64 hex chars");
 
+const coord = z.number().finite().min(-100000).max(100000);
+
+/** Idempotent telemetry checkpoint: cumulative totals within a client segment. */
+export const telemetryInput = z.object({
+  segment: uuid,
+  dist: z.number().finite().min(0).max(1e7),
+  ms: z.number().int().min(0).max(1e10),
+  x: coord,
+  z: coord,
+  heading: z.number().finite().min(-1e4).max(1e4),
+});
+export type TelemetryInput = z.infer<typeof telemetryInput>;
+
 export const startSessionInput = z.object({
-  destinationId: z.literal("mars"),
+  destinationId: z.enum(["mars", "moon"]),
   requestKey: uuid,
   controllerToken: token,
 });
@@ -86,6 +113,7 @@ export const heartbeatInput = z.object({
   controllerToken: token,
   generation: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
   seq: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  telemetry: telemetryInput.optional(),
 });
 export const takeoverInput = z.object({
   expectedGeneration: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
@@ -95,6 +123,14 @@ export const takeoverInput = z.object({
 export const stopInput = z.object({
   controllerToken: token,
   generation: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  telemetry: telemetryInput.optional(),
+});
+export const scanInput = z.object({
+  controllerToken: token,
+  generation: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+  siteId: z.string().min(1).max(64).regex(/^[a-z0-9-]+$/),
+  x: coord,
+  z: coord,
 });
 export const checkoutInput = z.object({
   packageId: z.string().min(1).max(64),
@@ -102,7 +138,7 @@ export const checkoutInput = z.object({
 });
 
 export function formatPrice(amountMinor: number, currency: string): string {
-  return new Intl.NumberFormat("en-IE", { style: "currency", currency: currency.toUpperCase() }).format(
+  return new Intl.NumberFormat(currency.toLowerCase() === "usd" ? "en-US" : "en-IE", { style: "currency", currency: currency.toUpperCase() }).format(
     amountMinor / 100,
   );
 }

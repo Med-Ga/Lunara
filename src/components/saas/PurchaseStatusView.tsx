@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { formatDuration, type PurchaseDTO } from "@/shared/contracts";
+import { DESTINATIONS } from "@/config/destinations";
 import { bigButtonClass, bigButtonSecondaryClass } from "./styles";
 
 // Polls with backoff (2, 4, 8 s… up to 60 s). Each check asks the server to verify
@@ -63,12 +64,12 @@ export function PurchaseStatusView({ purchaseId, canceled }: { purchaseId: strin
         <>
           <h1 className="text-4xl font-extrabold">Time added</h1>
           <p className="mt-3 text-lg text-muted-foreground">
-            Stripe confirmed your test payment. {formatDuration(purchase!.durationMs)} of exploration time is now on
-            your account.
+            Stripe confirmed your test payment. {formatDuration(purchase!.durationMs)} of {DESTINATIONS[purchase!.destinationId].name} time
+            is now on your account. It can only be used on {DESTINATIONS[purchase!.destinationId].name}.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/explore/mars" className={bigButtonClass}>
-              Explore Mars
+            <Link href={`/explore/${purchase!.destinationId}`} className={bigButtonClass}>
+              Explore {DESTINATIONS[purchase!.destinationId].name}
             </Link>
             <Link href="/dashboard" className={bigButtonSecondaryClass}>
               Go to dashboard

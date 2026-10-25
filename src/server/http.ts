@@ -21,6 +21,12 @@ const STATUS: Record<ErrorCode, number> = {
   CHECKOUT_MISMATCH: 409,
   PAYMENT_PROVIDER_UNAVAILABLE: 503,
   SERVICE_UNAVAILABLE: 503,
+  SESSION_NOT_ACTIVE: 409,
+  SESSION_NOT_CLOSED: 409,
+  WRONG_DESTINATION: 422,
+  OUT_OF_RANGE: 422,
+  IMPLAUSIBLE_POSITION: 422,
+  UNKNOWN_SITE: 404,
 };
 
 const MESSAGES: Partial<Record<ErrorCode, string>> = {
@@ -31,6 +37,12 @@ const MESSAGES: Partial<Record<ErrorCode, string>> = {
   PACKAGE_UNAVAILABLE: "That package is not available.",
   PAYMENT_PROVIDER_UNAVAILABLE: "The payment provider could not be reached. Nothing was charged or credited.",
   SERVICE_UNAVAILABLE: "The service is temporarily unavailable. Please retry.",
+  SESSION_NOT_ACTIVE: "The session has ended, so the scan was not saved.",
+  SESSION_NOT_CLOSED: "The mission is still active; its report is created when it ends.",
+  WRONG_DESTINATION: "That site belongs to another destination.",
+  OUT_OF_RANGE: "Move closer to the site to scan it.",
+  IMPLAUSIBLE_POSITION: "Your position could not be confirmed. Keep moving and try again.",
+  UNKNOWN_SITE: "Unknown observation site.",
 };
 
 export class DomainError extends Error {

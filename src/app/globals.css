@@ -119,3 +119,22 @@
     transition: none !important;
   }
 }
+
+/* Destination previews (original CSS art, no imagery claims). */
+.preview-mars {
+  background:
+    radial-gradient(90% 55% at 75% 100%, rgba(229, 139, 102, 0.6), transparent 60%),
+    linear-gradient(180deg, #121a33 0%, #3a1f1f 60%, #8a4a33 85%, #c67a54 100%);
+}
+.preview-moon {
+  background:
+    radial-gradient(40% 40% at 82% 22%, rgba(243, 246, 252, 0.22), transparent 70%),
+    radial-gradient(90% 50% at 30% 100%, rgba(181, 192, 214, 0.35), transparent 60%),
+    linear-gradient(180deg, #05060a 0%, #10131c 55%, #3a3f4c 85%, #6b7080 100%);
+}
+
+@media print {
+  header.sticky, footer, .print\:hidden { display: none !important; }
+  body { background: #fff !important; color: #111 !important; }
+  .report, .report * { color: #111 !important; background: transparent !important; border-color: #ccc !important; }
+}

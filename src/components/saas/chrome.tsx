@@ -53,6 +53,9 @@ async function HeaderInner() {
               <Link href="/dashboard" className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground">
                 Dashboard
               </Link>
+              <Link href="/missions" className="hidden rounded-md px-3 py-2 text-muted-foreground hover:text-foreground sm:inline-block">
+                Discoveries
+              </Link>
               <LogoutButton />
             </>
           ) : (

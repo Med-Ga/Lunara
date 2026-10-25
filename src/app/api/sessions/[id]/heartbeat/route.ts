@@ -1,3 +1,4 @@
+import { scheduleReport } from "@/server/missions/service";
 import { z } from "zod";
 import { heartbeatInput } from "@/shared/contracts";
 import { requireActor } from "@/server/auth";
@@ -11,7 +12,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const { id } = await ctx.params;
     if (!z.string().uuid().safeParse(id).success) throw new DomainError("SESSION_NOT_FOUND");
     const input = await parseBody(req, heartbeatInput);
-    const snap = await sessions.heartbeat(actor.id, id, input.controllerToken, input.generation, input.seq);
+    const snap = await sessions.heartbeat(actor.id, id, input.controllerToken, input.generation, input.seq, input.telemetry);
+    if (snap.session && snap.session.status !== "ACTIVE") scheduleReport(actor, snap.session.id);
     return ok({ ...snap, seq: input.seq });
   });
 }

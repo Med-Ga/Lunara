@@ -36,7 +36,7 @@ type Snap = {
 };
 
 async function newPurchase(user: string) {
-  const p = await call<{ id: string }>("lunara_reserve_purchase", user, "demo-pass", randomUUID());
+  const p = await call<{ id: string }>("lunara_reserve_purchase", user, "mars-1m", randomUUID());
   return p.id;
 }
 
@@ -50,7 +50,7 @@ d("SQL accounting functions (real database)", () => {
         [id, `it-${id}@lunara.test`],
       );
     }
-    const { rows } = await pool.query("select * from public.packages where id = 'demo-pass'");
+    const { rows } = await pool.query("select * from public.packages where id = 'mars-1m'");
     packagePrice = rows[0].stripe_price_id;
     packageAmount = Number(rows[0].amount_minor);
     packageCurrency = rows[0].currency;
@@ -61,6 +61,8 @@ d("SQL accounting functions (real database)", () => {
     if (!pool) return;
     for (const id of [A, B]) {
       await pool.query("delete from public.payment_events where purchase_id in (select id from public.purchases where user_id=$1)", [id]);
+      for (const t of ["mission_reports", "observations", "mission_telemetry"]) await pool.query(`delete from public.${t} where user_id=$1`, [id]);
+      await pool.query("delete from public.destination_balances where user_id=$1", [id]);
       await pool.query("delete from public.exploration_sessions where user_id=$1", [id]);
       await pool.query("delete from public.purchases where user_id=$1", [id]);
       await pool.query("delete from public.accounts where user_id=$1", [id]);
@@ -197,7 +199,7 @@ d("SQL accounting functions (real database)", () => {
 
   it("balance exhaustion expires the session at zero, never negative", async () => {
     // Test-only fixture: shrink the balance directly (no such public endpoint exists).
-    await pool.query("update public.accounts set balance_ms = 800 where user_id=$1", [A]);
+    await pool.query("update public.destination_balances set balance_ms = 800 where user_id=$1 and destination_id='mars'", [A]);
     await call<Snap>("lunara_start_session", A, "mars", randomUUID(), hash("exp"), 15000);
     await sleep(1300);
     const s = await call<Snap>("lunara_account_snapshot", A);

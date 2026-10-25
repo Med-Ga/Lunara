@@ -48,3 +48,4 @@ maps/*.glb
 .env.webhook
 /tsconfig.tsbuildinfo
 !.env.example
+maps/moon-src/
