@@ -15,7 +15,7 @@ MVP ONLY: the smallest version that works and demos well. Build a beautiful, wor
 - Next.js + Tailwind CSS + shadcn/ui (front end, must look like a polished startup)
 - Supabase (login + database, no custom backend)
 - Stripe in TEST MODE (Free vs Pro plans, "Upgrade to Pro" checkout)
-- Vercel (live link, deployed from GitHub): https://saas-hackathon.vercel.app (repo: github.com/Med-Ga/saas-hackathon)
+- Vercel (live link, deployed from GitHub `main`): https://lunara-space.vercel.app (old saas-hackathon.vercel.app redirects there; repo: github.com/Med-Ga/saas-hackathon)
 - Claude API only if the core feature needs AI
 - API keys go in .env, which must be in .gitignore. Never commit secrets.
 
@@ -42,33 +42,36 @@ MVP ONLY: the smallest version that works and demos well. Build a beautiful, wor
 - After every finished feature, update PITCH.md (demo steps, what to say, who says it). Keep it short. By the end, the pitch must be ready.
 - Save tokens: short answers, no long explanations unless asked, read only the files needed, no screenshots unless checking design.
 
-## REMINDER: rename everything once the app name is chosen
-When the team picks the app name, remind me and rename everything visible in the demo/pitch:
-- App: page titles (browser tab "Create Next App"), logo/text, favicon, README
-- Vercel domain (saas-hackathon.vercel.app -> <name>.vercel.app)
-- Supabase: organization ("Peugeot 106"), project ("Saas_Hackathon"), login email sender name
-- Stripe: business/product names on the checkout page (e.g. "<Name> Pro")
-- GitHub repo name (optional)
+## Rename status (app name: LUNARA)
+- Done: app titles/logo (LUNARA), live link lunara-space.vercel.app (lunara.vercel.app was taken), Stripe product names ("LUNARA Mars/Moon …").
+- Still optional: Supabase organization ("Peugeot 106") and project names, GitHub repo name, Vercel project name.
 
-## Known gotchas (handle when building)
-- Supabase free plan sends only a few auth emails per hour: turn OFF "Confirm email" (Authentication > Sign In / Providers > Email) so demo sign-ups never get stuck.
-- Supabase Authentication > URL Configuration: set Site URL to the Vercel link, add http://localhost:3000 to redirect URLs.
-- Add the 4 keys from .env to Vercel (Project > Settings > Environment Variables), then redeploy.
-- Create the Stripe "Pro" product + monthly price in test mode; show TND on the pricing page.
-- Prepare a demo account with good demo data before the pitch.
+## Known gotchas (status)
+- Supabase "Confirm email": turn OFF before demos so sign-ups never get stuck.
+- Supabase Auth URL Configuration: Site URL = https://lunara-space.vercel.app; redirect URLs include https://lunara-space.vercel.app/** and http://localhost:3000/**.
+- Vercel needs 7 env vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, APP_ORIGIN). The private file `.env.vercel` (git-ignored) holds them ready to paste. Redeploy after any change.
+- Stripe webhook points to https://lunara-space.vercel.app/api/webhooks/stripe; its secret is in `.env.webhook`. Re-run `npm run stripe:webhook -- <origin>` if the domain changes.
+- Prices are USD test fixtures (Mars $10/min, Moon $7/min), not TND: Stripe does not support TND. The pitch mentions Konnect/Flouci for Tunisia later.
+- Prepare a demo account before the pitch (see PITCH.md checklist).
+- After the hackathon: rotate Supabase/Stripe secret keys and the DB password (they appeared in chat/screenshots).
 
 ## Hackathon rules note
 Some hackathons require code to be written during the event. Until the hackathon starts, everything here is PRACTICE ONLY.
 
-## Current tasks (practice setup, before the hackathon)
-1. Check if Node.js (LTS) and Git are installed. If not, install them with winget and verify.
-2. This folder currently has a PyCharm Python template (.venv, main.py). Ask me before removing anything.
-3. Create a practice Next.js + Tailwind + shadcn/ui app, start it, and tell me which link to open.
-4. Make sure .env exists and is in .gitignore.
-5. Tell me which accounts I still need (GitHub, Vercel, Supabase, Stripe) and guide me through connecting each one.
-6. Remind me to install the plugins myself with:
-   /plugin install frontend-design@claude-plugins-official
-   /plugin install playwright@claude-plugins-official
+## Current state (LUNARA 2.0, live)
+- Practice setup is complete (Node, Git, GitHub CLI, accounts, frontend-design plugin).
+- Built and deployed: auth, per-destination prepaid time (Mars + Moon), Stripe test checkout + verified webhook, server-authoritative sessions, 3D first-person exploration, mini-map, telemetry panel, E-scan observations, mission reports, Discoveries archive.
+- Database migrations 0001–0003 applied (`npm run db:migrate` skips applied ones). Tests: `npm test` (unit), `npm run test:integration` (real DB + Stripe).
+- Pitch: deck at https://claude.ai/artifact/N3fq2zzjXHBJ7HhYSua9BB and speaker script in PITCH.md (7 parts: problem, solution, how it works, architecture, demo & results, impact & value with business model canvas, Q&A).
+
+## Next tasks
+1. Rehearse the pitch 3x with the live demo; record the 2-minute backup video.
+2. Share the deck with B and C (Share menu on the deck).
+3. Check the Sketchfab licenses of the Mars and Moon models and add the credits.
+4. Keep `main` deployable: test locally, then commit and push (ask first).
+
+## Product scope update (overrides older lines below)
+LUNARA 2.0 has TWO destinations, Mars and Moon, each with its own balance and price, plus scanning, mini-map, telemetry, reports and archive. Where the LUNARA instructions below say "Mars only" or "one destination", this update wins. Controls: Z/W forward, S back, Q/A and D turn, mouse look, E scan, Escape frees the mouse.
 
 
 # CLAUDE.md — LUNARA Repository Instructions
