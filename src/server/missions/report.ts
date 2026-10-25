@@ -1,5 +1,5 @@
 // Deterministic mission report built ONLY from persisted mission records, accepted telemetry
-// and saved observations. Pure function: same inputs → same report. No AI, no invented findings.
+// and saved observations. Pure function: same inputs → same report. No invented findings.
 import { DESTINATIONS, simulatedTemperatureC, type DestinationId } from "@/config/destinations";
 
 export const INTEGRITY_STATEMENT =

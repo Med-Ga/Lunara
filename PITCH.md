@@ -1,6 +1,6 @@
 # LUNARA pitch: the story script (5 min + questions)
 
-Deck (keywords only): https://claude.ai/artifact/N3fq2zzjXHBJ7HhYSua9BB — the same script is in each slide's speaker notes.
+Deck (keywords only): shared by A — the same script is in each slide's speaker notes.
 Live app: https://lunara-space.vercel.app
 Speakers: **A** = builder/demo · **B** = design · **C** = story/business. Rehearse 3 times with a timer.
 
