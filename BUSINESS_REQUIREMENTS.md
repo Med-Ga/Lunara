@@ -3,7 +3,7 @@
 **Planetary Exploration as a Service · LUNARA 2.0 — Planetary Discovery**  
 **Version:** 1.0 · **Prepared:** 25 October 2026 · **Status:** Business proposal / hackathon BRD  
 **Audience:** LUMEN 2.0 judges, product team, prospective education/research customers, potential infrastructure partners and investors  
-**Document ownership:** LUNARA project team (three members)
+**Document ownership:** LUNARA project team (four members: Mohamed Gouja, Youssef Essif, Aziz Benjaa, Aziz Chebbi)
 
 > **Evidence and status convention.** **Implemented, live** means the feature is built, covered by automated tests and deployed at https://lunara-space.vercel.app (verified 25 October 2026). **Future concept** means a potential commercial service requiring external partnerships and feasibility validation. **Illustrative assumption** means a planning input, not measured business performance. Stripe payments in the hackathon use **test mode and generate no actual sales revenue**. All in-app geological findings are **simulated**.
 
@@ -105,7 +105,7 @@ No stakeholder identities, formal partnerships, investments or operator agreemen
 
 | Stakeholder | Type | Interest / benefit | Role or responsibility | Influence / concern |
 |---|---|---|---|---|
-| Three-person LUNARA team | Internal | Demonstrable product, hackathon outcome, commercial learning | Build (A), design and testing (B), pitch and business (C) | High; limited build time |
+| Four-person LUNARA team (Mohamed Gouja, Youssef Essif, Aziz Benjaa, Aziz Chebbi) | Internal | Demonstrable product, hackathon outcome, commercial learning | Engineering, design, testing, pitch and business | High; limited build time |
 | Product owner / business lead | Internal | Clear value proposition, pricing, coherent scope | Prioritize requirements, accept demonstrations | High; over-scoping risk |
 | Technical/integration lead | Internal | Secure, stable integrated app | Preserve architecture and delivery quality | High; payment/data errors |
 | Space enthusiasts | External customers | Authentic-feeling access and satisfying discoveries | Pilot testing and feedback | Medium; price sensitivity |
@@ -173,7 +173,7 @@ Example: base case = `300 × (2 × $10 + 3 × $7) = $12,300/month`. The growth c
 |---|---|---|---|
 | Web hosting and data storage | Free plans today (Vercel Hobby, Supabase Free); paid tiers at scale | Operator access/capacity fee | Unknown; negotiate with provider |
 | Authentication, database, monitoring | May use limited free tiers during demo | Instrument scheduling and mission operations | Unknown; safety-led |
-| Development time | Three-member team effort; unpaid/paid not specified | Mission data rights, processing, provenance | Contract dependent |
+| Development time | Four-member team effort; unpaid/paid not specified | Mission data rights, processing, provenance | Contract dependent |
 | 3D terrain/model license | Verify actual asset license | Communications and relay/service fees | Unknown and mission dependent |
 | Testing, domain, support | Budget not supplied | Insurance, regulatory/legal, specialist support | Jurisdiction and activity dependent |
 | Stripe test checkout | No real charges or commercial settlement | Live payment processing and refunds | Actual merchant contract dependent |
@@ -356,7 +356,7 @@ LUNARA has a **clear proposed monetization unit**—authorized exploration minut
 | **Channels** | LUNARA web application and pitch demonstrations | Direct web acquisition, educator partnerships, institution sales, operator co-marketing |
 | **Customer relationships** | Self-service registration, prepaid sessions, history | Account support, institutional onboarding, partner SLAs |
 | **Revenue streams** | **None confirmed in test mode**; conceptual $10/$7 per-minute price | Live prepaid minutes; possible institutional bundles after separate validation |
-| **Key resources** | Source code, licensed 3D assets, cloud services, three-person team | Operator rights, mission integration, genuine datasets, scientific QA, business licenses |
+| **Key resources** | Source code, licensed 3D assets, cloud services, four-person team | Operator rights, mission integration, genuine datasets, scientific QA, business licenses |
 | **Key activities** | Maintain app, sessions, scanning model and reports | Validate users, enforce access rules, schedule permitted tasks, protect provenance and data |
 | **Key partners** | Platform vendors (technical dependencies, not commercial partnerships) | Mission operators, educational institutions, data licensors, research collaborators |
 | **Cost structure** | Team development, hosting, database, asset license | Above plus customer acquisition, partner capacity, operations, legal, compliance and support |

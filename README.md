@@ -1,8 +1,11 @@
 # LUNARA — Explore Beyond Earth
 
-Hackathon prototype (Lumen 2.0 · Beyond 2030): buy prepaid minutes with Stripe **test mode**, then explore a **simulated** Mars terrain in first person while a server-authoritative clock runs down.
+Hackathon prototype (Lumen 2.0 · Beyond 2030): buy prepaid minutes with Stripe **test mode**, then explore **simulated** Mars and Moon terrains in first person while a server-authoritative clock runs down.
 
-Live: https://saas-hackathon.vercel.app · Docs: `PRODUCT.md`, `ARCHITECTURE.md`, `TASKS.md`, `PITCH.md`, `docs/assets.md`
+Live: https://lunara-space.vercel.app · Docs: `PRODUCT.md`, `ARCHITECTURE.md`, `BUSINESS_REQUIREMENTS.md`, `PITCH.md`, `docs/assets.md`
+
+## Team
+Mohamed Gouja · Youssef Essif · Aziz Benjaa · Aziz Chebbi
 
 ## Stack
 Next.js 16 (App Router) · React 19 · Tailwind + shadcn/ui · Supabase Auth + Postgres · Stripe Checkout (test) · React Three Fiber/Drei · Vercel
@@ -31,8 +34,8 @@ npm run build
 ```
 
 ## Deploy (Vercel)
-1. Vercel → Project → Settings → Environment Variables: add every key from `.env` except `SUPABASE_DB_URL`, and set `APP_ORIGIN=https://saas-hackathon.vercel.app`.
-2. `npm run stripe:webhook -- https://saas-hackathon.vercel.app` → copy the value from `.env.webhook` into Vercel as `STRIPE_WEBHOOK_SECRET`.
+1. Vercel → Project → Settings → Environment Variables: add every key from `.env` except `SUPABASE_DB_URL`, and set `APP_ORIGIN=https://lunara-space.vercel.app`.
+2. `npm run stripe:webhook -- https://lunara-space.vercel.app` → copy the value from `.env.webhook` into Vercel as `STRIPE_WEBHOOK_SECRET`.
 3. Supabase → Authentication → URL Configuration: Site URL = the Vercel URL; add `http://localhost:3000/**` to redirect URLs.
 4. Redeploy.
 

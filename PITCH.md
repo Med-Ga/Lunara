@@ -2,6 +2,7 @@
 
 Deck (keywords only): shared by A — the same script is in each slide's speaker notes.
 Live app: https://lunara-space.vercel.app
+**Team:** Mohamed Gouja, Youssef Essif, Aziz Benjaa, Aziz Chebbi
 Speakers: **A** = builder/demo · **B** = design · **C** = story/business. Rehearse 3 times with a timer.
 
 The story arc: **2035 → nobody can look → minutes, not missions → how → why it's trustworthy → proof (demo) → who wins → how we earn → closing line.**
@@ -9,7 +10,7 @@ The story arc: **2035 → nobody can look → minutes, not missions → how → 
 ---
 
 ### 1. Cover — "LUNARA · Explore Beyond Earth" (C, 15 s)
-"Good morning. We are [team name], and this is LUNARA.
+"Good morning. We are Mohamed, Youssef, Aziz and Aziz, and this is LUNARA.
 Before we explain anything, we want to take you on a short trip… to the year 2035."
 
 ### 2. Story — "2035 · Robots on the Moon. Robots on Mars." (C, 30 s)
@@ -114,4 +115,4 @@ When real robots arrive, we share revenue with operators: they earn from idle ro
 - [ ] https://lunara-space.vercel.app opens; demo account logged in; Moon balance 00:00, some Mars minutes as backup
 - [ ] Chrome, mouse, AZERTY checked (Z forward, Q/D turn, E scan)
 - [ ] Backup video on the desktop; deck open in Present mode in another tab
-- [ ] Fill the deck placeholders: [team name], [A] [B] [C]
+- [ ] Decide who is speaker A, B and C

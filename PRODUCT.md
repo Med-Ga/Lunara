@@ -8,6 +8,7 @@ Version 2.0 · 25 October 2026 · Lumen 2.0 hackathon (Beyond 2030)
 - **Tagline:** Rent a window on another world, by the minute.
 - **Category:** Planetary exploration as a service.
 - **Live:** https://lunara-space.vercel.app
+- **Team:** Mohamed Gouja, Youssef Essif, Aziz Benjaa, Aziz Chebbi
 
 LUNARA lets people buy prepaid minutes of exploration time for a destination (Mars or the Moon), explore it in first person, scan geological sites, and keep an automatically written mission report.
 
