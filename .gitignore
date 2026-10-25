@@ -42,3 +42,9 @@ next-env.d.ts
 
 # PyCharm settings
 .idea/
+
+# Original (unoptimised) terrain and local webhook secret
+maps/*.glb
+.env.webhook
+/tsconfig.tsbuildinfo
+!.env.example
