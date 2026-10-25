@@ -3,9 +3,9 @@
 **Planetary Exploration as a Service · LUNARA 2.0 — Planetary Discovery**  
 **Version:** 1.0 · **Prepared:** 25 October 2026 · **Status:** Business proposal / hackathon BRD  
 **Audience:** LUMEN 2.0 judges, product team, prospective education/research customers, potential infrastructure partners and investors  
-**Document ownership:** LUNARA project team (five members)
+**Document ownership:** LUNARA project team (three members)
 
-> **Evidence and status convention.** **Existing (team-reported)** means the team has said the original LUNARA application works; its code has not been audited for this BRD. **Upgrade requirement** means a feature requested for LUNARA 2.0, not independently verified as deployed. **Future concept** means a potential commercial service requiring external partnerships and feasibility validation. **Illustrative assumption** means a planning input, not measured business performance. Stripe payments in the hackathon use **test mode and generate no actual sales revenue**. All in-app geological findings are **simulated**.
+> **Evidence and status convention.** **Implemented, live** means the feature is built, covered by automated tests and deployed at https://lunara-space.vercel.app (verified 25 October 2026). **Future concept** means a potential commercial service requiring external partnerships and feasibility validation. **Illustrative assumption** means a planning input, not measured business performance. Stripe payments in the hackathon use **test mode and generate no actual sales revenue**. All in-app geological findings are **simulated**.
 
 ## 1. Executive Summary
 
@@ -70,16 +70,16 @@ The official specification assigns **30 points to SaaS/Solution Quality, 25 to I
 
 | Business capability | Scope | Current status for this BRD |
 |---|---|---|
-| Landing page, login, authenticated dashboard | In scope | Existing, team-reported functional |
-| Prepaid time purchase and Stripe Checkout test flow | In scope | Existing, team-reported functional |
-| Server-authoritative exploration timer and access expiry | In scope | Existing, team-reported functional |
-| Mars first-person 3D navigation | In scope | Existing, team-reported functional |
-| Moon map, destination selection, separate planet balances | In scope | **LUNARA 2.0 upgrade requirement; deployment not verified** |
-| Mars $10/min and Moon $7/min prices | In scope | Approved upgrade requirement; live website state not inspected |
-| Mini-map and location/resource markers | In scope | Upgrade requirement |
-| Telemetry (heading, time, coordinates, speed, environment) | In scope | Upgrade requirement; physical values labeled simulated |
-| Geological points of interest and E-to-scan interaction | In scope | Upgrade requirement; synthetic observations |
-| End-of-session reports and discovery archive | In scope | Upgrade requirement |
+| Landing page, login, authenticated dashboard | In scope | Implemented, live |
+| Prepaid time purchase and Stripe Checkout test flow | In scope | Implemented, live |
+| Server-authoritative exploration timer and access expiry | In scope | Implemented, live |
+| Mars first-person 3D navigation | In scope | Implemented, live |
+| Moon map, destination selection, separate planet balances | In scope | **Implemented, live (LUNARA 2.0)** |
+| Mars $10/min and Moon $7/min prices | In scope | Implemented, live (server-controlled catalogue) |
+| Mini-map and location/resource markers | In scope | Implemented, live |
+| Telemetry (heading, time, coordinates, speed, environment) | In scope | Implemented, live; physical values labeled simulated |
+| Geological points of interest and E-to-scan interaction | In scope | Implemented, live; synthetic observations |
+| End-of-session reports and discovery archive | In scope | Implemented, live |
 | Real spacecraft, real Moon/Mars rover teleoperation, real science data | Out of current scope | Future concept only; no current access |
 | Mission objectives, quests, achievements, phone rover controller | Excluded | Explicitly not part of LUNARA 2.0 |
 | More playable planetary locations | Excluded | Only Mars and Moon in 2.0 |
@@ -91,7 +91,7 @@ The official specification assigns **30 points to SaaS/Solution Quality, 25 to I
 - The approved list price is **Mars $10/min** and **Moon $7/min** in USD. Displayed amounts and charged test prices must agree with a server-controlled price catalogue.
 - The user's current planet-specific balance is reduced during an active session even if the camera stays still; the **server** determines authoritative consumption.
 - Users cannot transfer cheaper Moon minutes to Mars, borrow time, or access another user's mission reports.
-- Previously purchased legitimate time and historical test records must be preserved across any migration. Old balances need a documented allocation policy, proposed initially as Mars-specific after entitlement review.
+- Previously purchased legitimate time and historical test records must be preserved across any migration. Pre-2.0 balances were migrated one-to-one into Mars time (Moon starts at zero); historical purchases keep their original amounts.
 - Reports are generated from saved scans and session records; a zero-scan session correctly reports **zero** discoveries. Simulation labels remain visible and prominent.
 - Report access continues after exploration time expires; purchasing additional time is not required to read a report.
 
@@ -105,7 +105,7 @@ No stakeholder identities, formal partnerships, investments or operator agreemen
 
 | Stakeholder | Type | Interest / benefit | Role or responsibility | Influence / concern |
 |---|---|---|---|---|
-| Five-person LUNARA team | Internal | Demonstrable product, hackathon outcome, commercial learning | Product, engineering, design, billing/testing, integration | High; limited build time |
+| Three-person LUNARA team | Internal | Demonstrable product, hackathon outcome, commercial learning | Build (A), design and testing (B), pitch and business (C) | High; limited build time |
 | Product owner / business lead | Internal | Clear value proposition, pricing, coherent scope | Prioritize requirements, accept demonstrations | High; over-scoping risk |
 | Technical/integration lead | Internal | Secure, stable integrated app | Preserve architecture and delivery quality | High; payment/data errors |
 | Space enthusiasts | External customers | Authentic-feeling access and satisfying discoveries | Pilot testing and feedback | Medium; price sensitivity |
@@ -171,9 +171,9 @@ Example: base case = `300 × (2 × $10 + 3 × $7) = $12,300/month`. The growth c
 
 | Current software-demo expense | Basis / status | Future genuine remote-exploration expense | Basis / status |
 |---|---|---|---|
-| Web hosting and data storage | Vendor-tier dependent; not verified | Operator access/capacity fee | Unknown; negotiate with provider |
+| Web hosting and data storage | Free plans today (Vercel Hobby, Supabase Free); paid tiers at scale | Operator access/capacity fee | Unknown; negotiate with provider |
 | Authentication, database, monitoring | May use limited free tiers during demo | Instrument scheduling and mission operations | Unknown; safety-led |
-| Development time | Five-member team effort; unpaid/paid not specified | Mission data rights, processing, provenance | Contract dependent |
+| Development time | Three-member team effort; unpaid/paid not specified | Mission data rights, processing, provenance | Contract dependent |
 | 3D terrain/model license | Verify actual asset license | Communications and relay/service fees | Unknown and mission dependent |
 | Testing, domain, support | Budget not supplied | Insurance, regulatory/legal, specialist support | Jurisdiction and activity dependent |
 | Stripe test checkout | No real charges or commercial settlement | Live payment processing and refunds | Actual merchant contract dependent |
@@ -216,34 +216,34 @@ Actual future financial statements cannot be completed responsibly until the tea
 
 ## 7. Functional Requirements
 
-These are **business capabilities and observable acceptance conditions**, not source-code or database prescriptions. **Must** denotes essential service behavior; **Should** indicates added value or launch hardening; **Could** indicates a low-risk enhancement if the approved scope permits. Status indicates existing team-reported functionality vs LUNARA 2.0 upgrade; it does not certify code deployment.
+These are **business capabilities and observable acceptance conditions**, not source-code or database prescriptions. **Must** denotes essential service behavior; **Should** indicates added value or launch hardening; **Could** indicates a low-risk enhancement if the approved scope permits. Status reflects the deployed LUNARA 2.0 application, verified with automated unit and integration tests (real database and Stripe test mode).
 
 | ID | Business requirement | Business objective | Stakeholder | Priority | Acceptance criterion | Status |
 |---|---|---|---|---|---|---|
-| BR-001 | Visitors can learn what LUNARA offers and that the current service is simulated | Trust and comprehension | Visitor | Must | Simulation notice and value proposition visible before purchase | Existing + transparency requirement |
-| BR-002 | Customers can register, log in and access their own account | Access management | Customer | Must | Logged-out user cannot access protected balance/session | Existing |
-| BR-003 | Customers can view/select Mars and Moon before purchase | Clear product choice | Customer | Must | Selected planet appears in checkout and mission | Upgrade |
-| BR-004 | Customer sees correct Mars $10/min and Moon $7/min prices and package totals | Pricing transparency | Customer | Must | Price is consistent across catalogue, checkout and purchase record | Upgrade |
-| BR-005 | Customer can complete a Stripe **test** purchase | Demonstrate transaction workflow | Customer, jury | Must | Successful test checkout acknowledged; canceled checkout credits nothing | Existing + upgrade |
-| BR-006 | Verified purchase credits only the purchased planet | Fair billing | Customer | Must | 5 purchased Moon minutes yield +5 Moon, +0 Mars | Upgrade |
-| BR-007 | A repeated payment notification must never duplicate minutes | Financial integrity | Customer, team | Must | Replay of same verified event credits once | Existing rule preserved |
-| BR-008 | Customers can view per-planet balances and purchase history | Balance transparency | Customer | Must | Balances persist across re-login | Upgrade |
-| BR-009 | Customers can only begin a mission with valid paid time for selected planet | Entitlement control | Customer, owner | Must | Insufficient balance blocks session | Existing + upgrade |
-| BR-010 | Purchased time is consumed while a session is active, including when stationary | Fair time accounting | Customer, owner | Must | Server-controlled elapsed time decrements correctly | Existing |
-| BR-011 | Time cannot be multiplied by refresh or parallel sessions | Revenue protection | Owner | Must | No double-use or negative balance across multi-tab tests | Existing rule preserved |
-| BR-012 | Access ends when the selected planet's paid time expires | Honest access policy | Customer, owner | Must | Movement/session denied after expiration | Existing + upgrade |
-| BR-013 | Selected planet terrain loads and responds to first-person keyboard/mouse navigation | Usable exploration | Customer | Must | Mars and Moon launch with working controls | Existing Mars; Moon upgrade |
-| BR-014 | Compact mini-map shows player position, heading and resource sites | Orientation | Customer | Should | Marker moves with camera; scanned sites change marker state | Upgrade |
-| BR-015 | Telemetry shows time, position, orientation, speed, distance and simulated temperature | Situational awareness | Customer | Should | Labels identify derived/simulated values correctly | Upgrade |
-| BR-016 | Users can discover nearby configured geological sites | Discovery experience | Customer | Must | Site proximity triggers scan affordance | Upgrade |
-| BR-017 | Users can scan a site and save its predefined simulated observation once per mission | Observation record | Customer | Must | Recorded entry has planet, time, site and data provenance | Upgrade |
-| BR-018 | Mission termination generates a report from saved events and metrics | Tangible deliverable | Customer | Must | One completed session produces correct report, including zero scans | Upgrade |
-| BR-019 | Users can access prior missions and reports after session expiry | Customer retention | Customer | Must | Reports persist and are retrievable by their owner | Upgrade |
-| BR-020 | User cannot access or change another person's purchases, observations or reports | Privacy and trust | Customer | Must | Authorization tests prevent cross-user access | Existing principle + upgrade |
-| BR-021 | Historical purchased minutes remain valid through 2.0 migration | Customer trust | Existing customer | Must | Migration reconciles pre-upgrade and post-upgrade balances | Upgrade |
-| BR-022 | No in-app claim treats synthetic geological observations as certified science | Scientific integrity | Educator, researcher, jury | Must | Explicit source label appears on scans/reports | Upgrade |
-| BR-023 | Errors, load failure and interrupted sessions have a clear user message | Service usability | Customer | Should | User sees recovery path and truthful balance | Both |
-| BR-024 | Customers may export or print a mission report | Shareability | Educator | Could | Export reproduces recorded findings and disclaimer | Optional |
+| BR-001 | Visitors can learn what LUNARA offers and that the current service is simulated | Trust and comprehension | Visitor | Must | Simulation notice and value proposition visible before purchase | Implemented, live |
+| BR-002 | Customers can register, log in and access their own account | Access management | Customer | Must | Logged-out user cannot access protected balance/session | Implemented, live |
+| BR-003 | Customers can view/select Mars and Moon before purchase | Clear product choice | Customer | Must | Selected planet appears in checkout and mission | Implemented, live |
+| BR-004 | Customer sees correct Mars $10/min and Moon $7/min prices and package totals | Pricing transparency | Customer | Must | Price is consistent across catalogue, checkout and purchase record | Implemented, live |
+| BR-005 | Customer can complete a Stripe **test** purchase | Demonstrate transaction workflow | Customer, jury | Must | Successful test checkout acknowledged; canceled checkout credits nothing | Implemented, live |
+| BR-006 | Verified purchase credits only the purchased planet | Fair billing | Customer | Must | 5 purchased Moon minutes yield +5 Moon, +0 Mars | Implemented, live |
+| BR-007 | A repeated payment notification must never duplicate minutes | Financial integrity | Customer, team | Must | Replay of same verified event credits once | Implemented, live |
+| BR-008 | Customers can view per-planet balances and purchase history | Balance transparency | Customer | Must | Balances persist across re-login | Implemented, live |
+| BR-009 | Customers can only begin a mission with valid paid time for selected planet | Entitlement control | Customer, owner | Must | Insufficient balance blocks session | Implemented, live |
+| BR-010 | Purchased time is consumed while a session is active, including when stationary | Fair time accounting | Customer, owner | Must | Server-controlled elapsed time decrements correctly | Implemented, live |
+| BR-011 | Time cannot be multiplied by refresh or parallel sessions | Revenue protection | Owner | Must | No double-use or negative balance across multi-tab tests | Implemented, live |
+| BR-012 | Access ends when the selected planet's paid time expires | Honest access policy | Customer, owner | Must | Movement/session denied after expiration | Implemented, live |
+| BR-013 | Selected planet terrain loads and responds to first-person keyboard/mouse navigation | Usable exploration | Customer | Must | Mars and Moon launch with working controls | Implemented, live |
+| BR-014 | Compact mini-map shows player position, heading and resource sites | Orientation | Customer | Should | Marker moves with camera; scanned sites change marker state | Implemented, live |
+| BR-015 | Telemetry shows time, position, orientation, speed, distance and simulated temperature | Situational awareness | Customer | Should | Labels identify derived/simulated values correctly | Implemented, live |
+| BR-016 | Users can discover nearby configured geological sites | Discovery experience | Customer | Must | Site proximity triggers scan affordance | Implemented, live |
+| BR-017 | Users can scan a site and save its predefined simulated observation once per mission | Observation record | Customer | Must | Recorded entry has planet, time, site and data provenance | Implemented, live |
+| BR-018 | Mission termination generates a report from saved events and metrics | Tangible deliverable | Customer | Must | One completed session produces correct report, including zero scans | Implemented, live |
+| BR-019 | Users can access prior missions and reports after session expiry | Customer retention | Customer | Must | Reports persist and are retrievable by their owner | Implemented, live |
+| BR-020 | User cannot access or change another person's purchases, observations or reports | Privacy and trust | Customer | Must | Authorization tests prevent cross-user access | Implemented, live |
+| BR-021 | Historical purchased minutes remain valid through 2.0 migration | Customer trust | Existing customer | Must | Migration reconciles pre-upgrade and post-upgrade balances | Implemented, live |
+| BR-022 | No in-app claim treats synthetic geological observations as certified science | Scientific integrity | Educator, researcher, jury | Must | Explicit source label appears on scans/reports | Implemented, live |
+| BR-023 | Errors, load failure and interrupted sessions have a clear user message | Service usability | Customer | Should | User sees recovery path and truthful balance | Implemented, live |
+| BR-024 | Customers may export or print a mission report | Shareability | Educator | Could | Export reproduces recorded findings and disclaimer | Implemented (print / save as PDF) |
 
 **Explicitly excluded:** missions/objectives/quests, achievements, cellphone rover controller, visible physical rover, extra planets, live physical science claims and actual teleoperation in this prototype. No new requirement may override payment integrity, access control or truthfulness.
 
@@ -257,16 +257,16 @@ Business acceptance requires all three tests: (a) Mars purchase and correct Mars
 
 ### 8.1 Hackathon milestones and confirmed context
 
-The LUMEN 2.0 specification states the **pitch is scheduled for 25 October at 09:00**, with **five minutes of presentation including the demo plus five minutes of Q&A**. The team worked under a **nine-hour build constraint**. The initial application has been **reported completed and functional by the team**; the present BRD does not independently audit that claim. Moon/scanning/report additions are documented as **upgrade requirements**, not certified deployed functionality. [S1]
+The LUMEN 2.0 specification states the **pitch is scheduled for 25 October at 09:00**, with **five minutes of presentation including the demo plus five minutes of Q&A**. The team worked under a **nine-hour build constraint**. The initial application and the LUNARA 2.0 additions (Moon, per-destination pricing, scanning, telemetry, reports and archive) are **implemented and live** at https://lunara-space.vercel.app. [S1]
 
 | Phase | Relative milestone / time constraint | Deliverable | Gate | Status |
 |---|---|---|---|---|
-| Original concept / MVP | Nine-hour hackathon build | Functional account, test purchase, Mars exploration and timer | End-to-end demo | **Team-reported complete** |
-| LUNARA 2.0 baseline | Before modifying working code | Working version preserved and smoke-tested | No regression | Required verification |
-| Destination / pricing expansion | Upgrade phase 1 | Moon terrain, planet selector, secure separate balances | Both purchases and access tested | Planned/unverified |
-| Discovery interface | Upgrade phase 2 | Mini-map, telemetry, configured geological sites, scanning | Observations linked to proper mission | Planned/unverified |
-| Research output | Upgrade phase 3 | Saved mission report and personal archive | Empty and multi-scan reports correct | Planned/unverified |
-| Release / pitch stabilization | Before any presentation | Regression tests, fallback footage, demo account and honest disclaimers | Rehearsed full path | Pending verification |
+| Original concept / MVP | Nine-hour hackathon build | Functional account, test purchase, Mars exploration and timer | End-to-end demo | **Complete** |
+| LUNARA 2.0 baseline | Before modifying working code | Working version preserved and smoke-tested | No regression | Complete |
+| Destination / pricing expansion | Upgrade phase 1 | Moon terrain, planet selector, secure separate balances | Both purchases and access tested | Complete, live |
+| Discovery interface | Upgrade phase 2 | Mini-map, telemetry, configured geological sites, scanning | Observations linked to proper mission | Complete, live |
+| Research output | Upgrade phase 3 | Saved mission report and personal archive | Empty and multi-scan reports correct | Complete, live |
+| Release / pitch stabilization | Before any presentation | Regression tests, fallback footage, demo account and honest disclaimers | Rehearsed full path | In progress (rehearsals) |
 
 **No new calendar implementation deadline is asserted.** The developer team must set any additional release dates based on verified work remaining, not derive them from the document date.
 
@@ -333,7 +333,7 @@ Even strong sales cannot rescue a product whose true cost/minute exceeds availab
 
 | Hypothesis | Evidence today | Key missing evidence | Proposed test | Failure consequence |
 |---|---|---|---|---|
-| People will pay $10/Mars min and $7/Moon min | Prices are defined in the product; test checkout is functional by team report | Real conversion and customer willingness to pay | Pricing interviews, ethical landing-page experiment, limited live pilot once authorized | Re-price or change offer |
+| People will pay $10/Mars min and $7/Moon min | Prices are defined in the product; test checkout is implemented and live | Real conversion and customer willingness to pay | Pricing interviews, ethical landing-page experiment, limited live pilot once authorized | Re-price or change offer |
 | Reports make exploration worth paying for | Structured simulated reports specified | User usefulness, repeat behavior | Educator task study and repeat-intent experiment | Reports may be decorative rather than a value driver |
 | Institutions will buy repeated access | Plausible use cases only | Budgets, procurement, learning outcomes | Interviews and classroom pilot | Remain hobbyist/consumer experience |
 | Real operators can provide saleable capacity | No provider agreement | Availability, data rights, safety, price, service levels | Obtain provider feasibility assessments and indicative terms | Cannot progress to authentic remote exploration |
@@ -356,7 +356,7 @@ LUNARA has a **clear proposed monetization unit**—authorized exploration minut
 | **Channels** | LUNARA web application and pitch demonstrations | Direct web acquisition, educator partnerships, institution sales, operator co-marketing |
 | **Customer relationships** | Self-service registration, prepaid sessions, history | Account support, institutional onboarding, partner SLAs |
 | **Revenue streams** | **None confirmed in test mode**; conceptual $10/$7 per-minute price | Live prepaid minutes; possible institutional bundles after separate validation |
-| **Key resources** | Source code, licensed 3D assets, cloud services, five-person team | Operator rights, mission integration, genuine datasets, scientific QA, business licenses |
+| **Key resources** | Source code, licensed 3D assets, cloud services, three-person team | Operator rights, mission integration, genuine datasets, scientific QA, business licenses |
 | **Key activities** | Maintain app, sessions, scanning model and reports | Validate users, enforce access rules, schedule permitted tasks, protect provenance and data |
 | **Key partners** | Platform vendors (technical dependencies, not commercial partnerships) | Mission operators, educational institutions, data licensors, research collaborators |
 | **Cost structure** | Team development, hosting, database, asset license | Above plus customer acquisition, partner capacity, operations, legal, compliance and support |
@@ -399,7 +399,7 @@ A failed gate should prompt an explicit **pivot** (e.g., simulation-based educat
 
 ## 13. Executive Business Verdict
 
-**What LUNARA demonstrates today:** the team reports a working planetary-exploration SaaS prototype with user accounts, a Mars exploration experience, prepaid-time access rules and Stripe test checkout. LUNARA 2.0 specifies Moon access, differentiated $10/$7 pricing, synthetic resource scanning, telemetry and mission reports; implementation of those upgrades has **not** been independently verified for this document.
+**What LUNARA demonstrates today:** a working, deployed planetary-exploration SaaS (https://lunara-space.vercel.app) with user accounts, Mars and Moon destinations, separate per-destination balances at $10/$7 per minute, Stripe test checkout with verified once-only credit, server-controlled sessions and expiry, a mini-map, telemetry, simulated geological scanning, automatic mission reports and a discovery archive. It is a simulation with test payments: no real robots, real data or real revenue.
 
 **What could become a business:** self-service educational exploration now, and—if infrastructure suppliers, permissions, validated customer demand and favorable economics emerge—a platform selling approved observation capacity and attributable scientific data products. The attractive aspect is a clear transaction unit with a persistent deliverable, not the implication that a rover can be driven instantly on Mars.
 
@@ -424,7 +424,7 @@ A failed gate should prompt an explicit **pivot** (e.g., simulation-based educat
 
 ## Evidence register and sources
 
-**Project-supplied context (not independent external verification):** current LUNARA build reported functional; latest LUNARA 2.0 product requirements and prices supplied by the project team. This BRD is created **as a new standalone document** and does not change existing repository documentation or website code.
+**Project context:** the LUNARA 2.0 application described here is implemented and live at https://lunara-space.vercel.app, verified with automated unit and integration tests (real database and Stripe test mode) on 25 October 2026. Prices and product requirements are set by the project team.
 
 - **[S1] LUMEN 2.0 Specification Book**, official project-provided PDF, Parts II–V, including working software expectations, judging weights, and 25 October 09:00 pitch format. Source provided in this conversation; no public URL assumed.
 - **[S2] NASA — Moon to Mars Architecture**: https://www.nasa.gov/MoonToMarsArchitecture/ (accessed 25 October 2026). Establishes real agency exploration planning; does **not** imply LUNARA has a NASA agreement.
