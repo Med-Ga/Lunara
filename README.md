@@ -2,7 +2,7 @@
 
 Hackathon prototype (Lumen 2.0 · Beyond 2030): buy prepaid minutes with Stripe **test mode**, then explore **simulated** Mars and Moon terrains in first person while a server-authoritative clock runs down.
 
-Live: https://lunara-space.vercel.app · Docs: `PRODUCT.md`, `ARCHITECTURE.md`, `BUSINESS_REQUIREMENTS.md`, `PITCH.md`, `docs/assets.md`
+Live: https://lunara-space.vercel.app · Docs: `PRODUCT.md`, `ARCHITECTURE.md`, `BUSINESS_REQUIREMENTS.md`, `docs/assets.md`
 
 ## Team
 Mohamed Gouja · Youssef Essif · Aziz Benjaa · Aziz Chebbi
@@ -40,7 +40,7 @@ npm run build
 4. Redeploy.
 
 ## Demo
-Register → Pricing → Buy 1 minute (card 4242 4242 4242 4242, any future date/CVC) → Explore Mars → Start → Z/W S Q/A D + mouse → wait for 00:00 → Buy more time → Start again. Full script in `PITCH.md`.
+Register → Pricing → Buy 1 minute (card 4242 4242 4242 4242, any future date/CVC) → Explore Mars → Start → Z/W S Q/A D + mouse → wait for 00:00 → Buy more time → Start again.
 
 ## Honest limits
 Simulated terrain (not Mars imagery), test payments only, desktop keyboard/mouse only. Terrain license must be verified (see `docs/assets.md`). A modified browser can still render the downloaded 3D file; what is protected is the server balance and session.
